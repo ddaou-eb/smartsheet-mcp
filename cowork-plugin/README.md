@@ -1,116 +1,45 @@
-# Smartsheet Cowork plugin
+# Smartsheet Cowork Plugin
 
-A Microsoft 365 Copilot Cowork **plugin** (connector-only, no custom skill) that
-gives Cowork the same Smartsheet read/write tools as the VS Code MCP server in
-[../server.mjs](../server.mjs), but reachable from Microsoft's cloud and signed in
-as **you personally** (Smartsheet OAuth), not a shared token.
+A Microsoft 365 Copilot Cowork connector plugin that gives Cowork live access to Smartsheet. Each user signs in with their own Smartsheet account via OAuth.
 
-Personal use only: sideloaded to Daniel's own Cowork account, not published to the
-team or the tenant.
+## Install (for users)
 
-## How it's different from the VS Code server
+The backend service is already deployed and registered for Eide Bailly. You do not need to configure Vercel, create an OAuth app, or write code.
 
-| | VS Code (`../server.mjs`) | This plugin |
-|---|---|---|
-| Transport | stdio, local process | HTTPS, hosted on Vercel |
-| Auth | one shared `.env` token | your own Smartsheet login (OAuth), per Cowork user |
-| Runs | only while VS Code is open | always on (serverless) |
+1. Download [smartsheet-cowork-plugin.zip](smartsheet-cowork-plugin.zip) (also available on the [Releases page](https://github.com/ddaou-eb/smartsheet-mcp/releases)).
+2. Sideload the zip into Teams / Cowork:
+   - **Option A (Teams UI):** In Teams, go to **Apps** > **Manage your apps** > **Upload an app** > **Upload a custom app**, and select `smartsheet-cowork-plugin.zip`.
+   - **Option B (CLI):** Run:
+     ```powershell
+     npm install -g @microsoft/m365agentstoolkit-cli
+     atk auth login
+     atk install --file-path "smartsheet-cowork-plugin.zip" --scope Personal
+     ```
+3. Open Cowork, enable **Smartsheet Tools** under your plugins/connectors, and run a prompt (such as "List my favorite Smartsheet sheets").
+4. Follow the prompt to sign in to your Smartsheet account to authorize access.
 
-`lib/smartsheet-client.mjs` is a copy of the same Smartsheet REST calls, just
-parameterized by an access token instead of reading `.env`.
+---
 
-## One-time setup
+## Developer and maintenance notes
 
-Do these in order. Steps 1, 3, and 6 need your own logins and can't be done for you.
+The notes below are only for maintaining or redeploying the backend infrastructure.
 
-### 1. Register a Smartsheet OAuth app
+### Production architecture
+- **Hosting:** Deployed to Vercel at `https://cowork-plugin.vercel.app/api/mcp` under the Eide Bailly team.
+- **Manifest:** `manifest.json` points to the Vercel endpoint and includes the pre-configured Microsoft OAuth registration ID.
+- **OAuth flow:** Handled by Microsoft Teams OAuth Vault connecting to Smartsheet's OAuth endpoints. Scopes: `READ_SHEETS WRITE_SHEETS CREATE_SHEETS ADMIN_WORKSPACES ADMIN_SHEETS`.
 
-1. In the Smartsheet app: **Account** icon (bottom-left) → **Developer Tools...** → **Create Developer Profile** (name it anything, e.g. "Cowork plugin").
-2. Still in Developer Tools, **Create New App**:
-   - **App name**: `Smartsheet Tools for Cowork`
-   - **App redirect URL**: `https://teams.microsoft.com/api/platform/v1.0/oAuthRedirect` — this exact URL, it's fixed by Microsoft, not something you choose.
-   - Other fields (description, app URL, contact) can be anything reasonable.
-3. Save. Smartsheet shows an **App client ID** and **App secret** — copy both, you'll need them in step 3.
-
-If your Eide Bailly Smartsheet account needs approval to use Developer Tools, that request happens on this same page; it may need Smartsheet or an admin to approve before you can register an app.
-
-### 2. Deploy the server to Vercel
-
-Done. The project is `cowork-plugin` under the **eidebailly** Vercel team, and the stable production URL is:
-
-```
-https://cowork-plugin.vercel.app/api/mcp
-```
-
-That URL is already set in [manifest.json](manifest.json). To push changes later, from the repo root:
-
+### Rebuilding the zip
+If you modify `manifest.json` or icons:
 ```powershell
-npx vercel --prod --cwd initiatives/smartsheet-mcp/cowork-plugin
-```
-
-[vercel.json](vercel.json) tells Vercel to bundle `tools/` with the function; without it, the tool schemas aren't on disk at runtime and `tools/list` fails.
-
-### 3. Register the OAuth client with Microsoft
-
-1. Open the [Teams Developer Portal](https://dev.teams.microsoft.com/tools) → **OAuth client registration** → **Register client** (or **New OAuth client registration**).
-2. Fill in:
-   - **Registration name**: `Smartsheet Tools for Cowork`
-   - **Base URL**: `https://cowork-plugin.vercel.app`
-   - **Restrict usage by org**: *My organization only* (fine for personal use)
-   - **Restrict usage by app**: *Any Teams app*
-   - **Client ID** / **Client secret**: the Smartsheet App client ID / secret from step 1
-   - **Authorization endpoint**: `https://app.smartsheet.com/b/authorize`
-   - **Token endpoint**: `https://api.smartsheet.com/2.0/token`
-   - **Refresh endpoint**: `https://api.smartsheet.com/2.0/token` (same URL; Smartsheet uses one endpoint for both, distinguished by a `grant_type` field)
-   - **Scope**: `READ_SHEETS WRITE_SHEETS CREATE_SHEETS ADMIN_WORKSPACES ADMIN_SHEETS`
-   - **Enable PKCE**: turn this **off**. Smartsheet's OAuth flow doesn't support PKCE, only a client secret.
-3. Save. Copy the **OAuth client registration ID** it generates.
-
-`ADMIN_SHEETS` is what Smartsheet requires to change a sheet's structure, which is what the two column tools do. `WRITE_SHEETS` covers comments. If you registered this client before the column tools existed, edit the registration to add `ADMIN_SHEETS` and then sign out of the Smartsheet connector in Cowork and sign back in: the old consent doesn't cover the new scope, so column calls fail with a permissions error until you re-consent.
-
-Paste that ID into [manifest.json](manifest.json) as `REPLACE_WITH_OAUTH_CLIENT_REGISTRATION_ID`.
-
-### 4. Package the plugin
-
-```powershell
-# From repo root:
-npm run package:cowork
-
-# Or from inside cowork-plugin:
 npm run package
 ```
 
-Produces `smartsheet-cowork-plugin.zip` (manifest and the two icons) in this folder. Re-run whenever `manifest.json` changes.
-
-The zip does **not** contain the tool schemas. Manifest 1.29 supports dynamic tool discovery: because `mcpToolDescription` is omitted, Cowork calls `tools/list` on the live endpoint instead, so tool changes ship by redeploying to Vercel rather than by repackaging and reinstalling.
-
-### 5. Install it to your own Cowork
-
+### Redeploying the endpoint
+To deploy changes to `api/mcp.mjs` or `lib/smartsheet-client.mjs`:
 ```powershell
-npm install -g @microsoft/m365agentstoolkit-cli
-atk --version
-atk auth login
-atk install --file-path "cowork-plugin/smartsheet-cowork-plugin.zip" --scope Personal
+npx vercel --prod
 ```
-
-`atk auth login` uses your Microsoft 365 work account. Save the `TitleId`/`AppId` it prints if you ever need to update or remove it.
-
-Done. The installed app is:
-
-```
-TitleId: T_04e2bd16-4c73-2a6d-56b2-8240e67af25a
-AppId:   b1316832-9e4b-4b91-b50d-7513ec6b314b
-```
-
-### 6. Test in Cowork
-
-Open Cowork, enable the plugin under **Sources & Skills → Plugins**, and try something like:
-
-- "List my Smartsheet sheets"
-- "What's in my favorited Smartsheet sheets?"
-- "Add a row to [sheet name] with [values]"
-
-The first call to a tool prompts you to sign in to Smartsheet (OAuth consent). After that, Cowork remembers it.
 
 ## Tools exposed
 
