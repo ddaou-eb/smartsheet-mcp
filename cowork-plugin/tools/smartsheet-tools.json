@@ -1,0 +1,165 @@
+[
+  {
+    "name": "smartsheet_list_sheets",
+    "description": "List all Smartsheet sheets available to the signed-in user, with their IDs and names. This can include sheets across the whole organization the user can see, not just their own. Prefer smartsheet_list_my_sheets or smartsheet_list_favorite_sheets unless the full org-wide list is specifically needed.",
+    "annotations": { "title": "List All Sheets", "readOnlyHint": true },
+    "inputSchema": { "type": "object", "properties": {} }
+  },
+  {
+    "name": "smartsheet_list_my_sheets",
+    "description": "List sheets in the signed-in user's own Home tab (owned by them or shared directly to them), the same set shown when they log into Smartsheet. Use this for \"my sheets\" style requests instead of smartsheet_list_sheets.",
+    "annotations": { "title": "List My Sheets", "readOnlyHint": true },
+    "inputSchema": { "type": "object", "properties": {} }
+  },
+  {
+    "name": "smartsheet_list_favorite_sheets",
+    "description": "List sheets the signed-in user has starred as favorites in Smartsheet.",
+    "annotations": { "title": "List Favorite Sheets", "readOnlyHint": true },
+    "inputSchema": { "type": "object", "properties": {} }
+  },
+  {
+    "name": "smartsheet_get_sheet",
+    "description": "Read a sheet's columns and rows. Identify the sheet by sheetId or sheetName.",
+    "annotations": { "title": "Get Sheet", "readOnlyHint": true },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sheetId": { "type": "string", "description": "Smartsheet sheet ID." },
+        "sheetName": { "type": "string", "description": "Exact sheet name, used if sheetId is not given." }
+      }
+    }
+  },
+  {
+    "name": "smartsheet_add_row",
+    "description": "Add a new row to a sheet. Cells are keyed by column title, matching what smartsheet_get_sheet returns.",
+    "annotations": { "title": "Add Row", "readOnlyHint": false, "destructiveHint": false },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sheetId": { "type": "string", "description": "Smartsheet sheet ID." },
+        "sheetName": { "type": "string", "description": "Exact sheet name, used if sheetId is not given." },
+        "cells": { "type": "object", "description": "Column title -> value for the new row. For CONTACT_LIST columns, use an email string or an object such as {\"email\":\"person@example.com\"}.", "additionalProperties": true },
+        "position": { "type": "string", "enum": ["top", "bottom"], "default": "bottom", "description": "Where to add the row." }
+      },
+      "required": ["cells"]
+    }
+  },
+  {
+    "name": "smartsheet_update_row",
+    "description": "Update cells on an existing row. Cells are keyed by column title, matching what smartsheet_get_sheet returns.",
+    "annotations": { "title": "Update Row", "readOnlyHint": false, "destructiveHint": true },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sheetId": { "type": "string", "description": "Smartsheet sheet ID." },
+        "sheetName": { "type": "string", "description": "Exact sheet name, used if sheetId is not given." },
+        "rowId": { "type": "string", "description": "ID of the row to update, from smartsheet_get_sheet." },
+        "cells": { "type": "object", "description": "Column title -> new value. For CONTACT_LIST columns, use an email string or an object such as {\"email\":\"person@example.com\"}.", "additionalProperties": true }
+      },
+      "required": ["rowId", "cells"]
+    }
+  },
+  {
+    "name": "smartsheet_create_workspace",
+    "description": "Create a new, empty Smartsheet workspace to hold sheets. Returns the new workspace ID.",
+    "annotations": { "title": "Create Workspace", "readOnlyHint": false, "destructiveHint": false },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name for the new workspace." }
+      },
+      "required": ["name"]
+    }
+  },
+  {
+    "name": "smartsheet_create_sheet",
+    "description": "Create a new sheet from a column definition, optionally inside a workspace. Each column needs a title and a type (TEXT_NUMBER, DATE, PICKLIST, CHECKBOX, or CONTACT_LIST). Exactly one column must be marked primary, must be of type TEXT_NUMBER, and must come first. For a PICKLIST column, include an \"options\" array of the allowed values.",
+    "annotations": { "title": "Create Sheet", "readOnlyHint": false, "destructiveHint": false },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name for the new sheet." },
+        "workspaceId": { "type": "string", "description": "Workspace to create the sheet in, if any." },
+        "workspaceName": { "type": "string", "description": "Exact workspace name, used if workspaceId is not given." },
+        "columns": {
+          "type": "array",
+          "description": "Column definitions, in left-to-right order. The primary column must come first.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "type": { "type": "string", "enum": ["TEXT_NUMBER", "DATE", "PICKLIST", "CHECKBOX", "CONTACT_LIST"] },
+              "primary": { "type": "boolean" },
+              "options": { "type": "array", "items": { "type": "string" }, "description": "Allowed values, for PICKLIST columns." }
+            },
+            "required": ["title", "type"]
+          }
+        }
+      },
+      "required": ["name", "columns"]
+    }
+  },
+  {
+    "name": "smartsheet_list_discussions",
+    "description": "Read the comment threads (discussions) on a sheet, or on one row of it. Give rowId to read a single row's conversation, omit it to read the whole sheet's. Returns each thread with its comments.",
+    "annotations": { "title": "List Discussions", "readOnlyHint": true },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sheetId": { "type": "string", "description": "Smartsheet sheet ID." },
+        "sheetName": { "type": "string", "description": "Exact sheet name, used if sheetId is not given." },
+        "rowId": { "type": "string", "description": "Row ID from smartsheet_get_sheet. Omit to read the whole sheet's discussions." }
+      }
+    }
+  },
+  {
+    "name": "smartsheet_add_comment",
+    "description": "Post a comment on a sheet, or on one row of it. This starts a new comment thread (Smartsheet calls it a discussion); it does not reply to an existing thread. On a row, the comment appears in that row's conversation pane in Smartsheet.",
+    "annotations": { "title": "Add Comment", "readOnlyHint": false, "destructiveHint": false },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sheetId": { "type": "string", "description": "Smartsheet sheet ID." },
+        "sheetName": { "type": "string", "description": "Exact sheet name, used if sheetId is not given." },
+        "rowId": { "type": "string", "description": "Row ID from smartsheet_get_sheet. Omit to comment on the sheet as a whole." },
+        "text": { "type": "string", "description": "The comment text." }
+      },
+      "required": ["text"]
+    }
+  },
+  {
+    "name": "smartsheet_add_column",
+    "description": "Add a new column to an existing sheet. Appends to the right unless index is given. For a PICKLIST column, include an \"options\" array of the allowed values.",
+    "annotations": { "title": "Add Column", "readOnlyHint": false, "destructiveHint": false },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sheetId": { "type": "string", "description": "Smartsheet sheet ID." },
+        "sheetName": { "type": "string", "description": "Exact sheet name, used if sheetId is not given." },
+        "title": { "type": "string", "description": "Title for the new column." },
+        "type": { "type": "string", "enum": ["TEXT_NUMBER", "DATE", "PICKLIST", "CHECKBOX", "CONTACT_LIST"], "description": "Column type." },
+        "options": { "type": "array", "items": { "type": "string" }, "description": "Allowed values, for PICKLIST columns." },
+        "index": { "type": "integer", "minimum": 0, "description": "Zero-based position. Omit to append to the right of the existing columns." }
+      },
+      "required": ["title", "type"]
+    }
+  },
+  {
+    "name": "smartsheet_update_column",
+    "description": "Rename, retype, reorder, or change the dropdown options of an existing column. Identify the column by its exact title or by columnId. Refuses to touch the primary column, system columns, and project/Gantt columns. Changing a column type converts every cell in it and clears its validation, so confirm with the user first.",
+    "annotations": { "title": "Update Column", "readOnlyHint": false, "destructiveHint": true },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sheetId": { "type": "string", "description": "Smartsheet sheet ID." },
+        "sheetName": { "type": "string", "description": "Exact sheet name, used if sheetId is not given." },
+        "columnTitle": { "type": "string", "description": "Exact current title of the column to change." },
+        "columnId": { "type": "string", "description": "Column ID, used instead of columnTitle when the title is ambiguous." },
+        "newTitle": { "type": "string", "description": "New title for the column." },
+        "type": { "type": "string", "enum": ["TEXT_NUMBER", "DATE", "PICKLIST", "CHECKBOX", "CONTACT_LIST"], "description": "New column type. Converts existing cell values." },
+        "options": { "type": "array", "items": { "type": "string" }, "description": "Replacement list of allowed values, for PICKLIST columns." },
+        "index": { "type": "integer", "minimum": 0, "description": "Zero-based position to move the column to." }
+      }
+    }
+  }
+]

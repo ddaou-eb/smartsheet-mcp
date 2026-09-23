@@ -1,0 +1,11 @@
+{
+  "name": "smartsheet-cowork-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cowork connector plugin exposing the Smartsheet MCP tools over a remote HTTPS endpoint, with per-user Smartsheet login.",
+  "type": "module",
+  "scripts": {
+    "generate-icons": "node scripts/generate-icons.mjs",
+    "package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1"
+  }
+}

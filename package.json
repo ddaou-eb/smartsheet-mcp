@@ -1,0 +1,16 @@
+{
+  "name": "smartsheet-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol (MCP) server connecting AI assistants (VS Code, GitHub Copilot, Claude Desktop) and Microsoft Copilot Cowork to Smartsheet.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs && node --check cowork-plugin/lib/smartsheet-client.mjs && node --check cowork-plugin/api/mcp.mjs && node -e \"JSON.parse(require('fs').readFileSync('cowork-plugin/tools/smartsheet-tools.json','utf8'))\"",
+    "package:cowork": "npm run package --prefix cowork-plugin"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.5",
+    "dotenv": "^16.4.7",
+    "zod": "^3.25.76"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.29/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.29",
+  "version": "1.0.0",
+  "id": "8f3b6d2a-9c4e-4b1a-8e7f-2d5c9a1b6f30",
+  "developer": {
+    "name": "Daniel Daou",
+    "websiteUrl": "https://www.eidebailly.com",
+    "privacyUrl": "https://www.eidebailly.com/privacy-policy",
+    "termsOfUseUrl": "https://www.eidebailly.com/terms-of-use"
+  },
+  "name": {
+    "short": "Smartsheet Tools",
+    "full": "Smartsheet Tools for Copilot Cowork"
+  },
+  "description": {
+    "short": "Read and update Smartsheet sheets and rows from Cowork",
+    "full": "Personal connector giving Copilot Cowork live access to Smartsheet: list your sheets and favorites, read a sheet's rows, add or update rows, and create sheets or workspaces. Each user signs in with their own Smartsheet account; no shared token."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#0E172D",
+  "agentConnectors": [
+    {
+      "id": "smartsheet-mcp",
+      "displayName": "Smartsheet",
+      "description": "Read and write access to your own Smartsheet sheets, rows, and workspaces.",
+      "toolSource": {
+        "remoteMcpServer": {
+          "mcpServerUrl": "https://cowork-plugin.vercel.app/api/mcp",
+          "authorization": {
+            "type": "OAuthPluginVault",
+            "referenceId": "MjIwNTY4YTgtZmQ3ZC00OGExLTk3OGEtMGZmZjA2YzBiYzM1IyMzZjdkMDc3YS0yNDZjLTQzNzYtOGY2MS1mNGMwODA3ZWVhMjQ="
+          }
+        }
+      }
+    }
+  ]
+}

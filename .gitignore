@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Secrets and environment files
+.env
+.env*.local
+*.env
+
+# Deployment and editor caches
+.vercel/
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
