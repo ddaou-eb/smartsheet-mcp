@@ -2,13 +2,15 @@
 
 Model Context Protocol (MCP) server connecting AI assistants to Smartsheet. Lets tools list and read sheets, add or update rows, manage columns, post comments, and create workspaces.
 
+Standalone public repository: [https://github.com/ddaou-eb/smartsheet-mcp](https://github.com/ddaou-eb/smartsheet-mcp)
+
 Works two ways:
 - **VS Code, GitHub Copilot, and Claude Desktop:** A local process (`server.mjs`) using a personal Smartsheet API token.
-- **Microsoft Copilot Cowork:** A cloud connector in `cowork-plugin/` using per-user Smartsheet OAuth.
+- **Microsoft Copilot Cowork:** A cloud connector in [cowork-plugin/](cowork-plugin/) using per-user Smartsheet OAuth.
 
 ## Install
 
-Clone the repo or download it as a zip (Code > Download ZIP on GitHub):
+Clone the standalone repo or download it as a zip (Code > Download ZIP on GitHub):
 
 ```bash
 git clone https://github.com/ddaou-eb/smartsheet-mcp.git
@@ -26,7 +28,7 @@ npm install
 Copy `.env.example` to `.env` and paste your token:
 
 ```bash
-cp .env.example .env
+cp initiatives/smartsheet-mcp/.env.example initiatives/smartsheet-mcp/.env
 ```
 
 ```env
@@ -35,15 +37,15 @@ SMARTSHEET_ACCESS_TOKEN=your_token_here
 
 ### 3. Register the server
 
-**VS Code (`.vscode/mcp.json`):**
+**VS Code ([.vscode/mcp.json](../../.vscode/mcp.json)):**
 ```json
 {
   "servers": {
     "smartsheet": {
       "type": "stdio",
       "command": "node",
-      "args": ["${workspaceFolder}/server.mjs"],
-      "envFile": "${workspaceFolder}/.env"
+      "args": ["${workspaceFolder}/initiatives/smartsheet-mcp/server.mjs"],
+      "envFile": "${workspaceFolder}/initiatives/smartsheet-mcp/.env"
     }
   }
 }
@@ -55,7 +57,7 @@ SMARTSHEET_ACCESS_TOKEN=your_token_here
   "mcpServers": {
     "smartsheet": {
       "command": "node",
-      "args": ["/absolute/path/to/smartsheet-mcp/server.mjs"],
+      "args": ["/absolute/path/to/initiatives/smartsheet-mcp/server.mjs"],
       "env": {
         "SMARTSHEET_ACCESS_TOKEN": "your_token_here"
       }
@@ -66,10 +68,10 @@ SMARTSHEET_ACCESS_TOKEN=your_token_here
 
 ## Microsoft Copilot Cowork
 
-The Cowork plugin lives in `cowork-plugin/`.
+The Cowork plugin lives in [cowork-plugin/](cowork-plugin/).
 
-1. Download the pre-built `smartsheet-cowork-plugin.zip` from [Releases](https://github.com/ddaou-eb/smartsheet-mcp/releases) or the `cowork-plugin/` folder.
-2. Follow the setup in [cowork-plugin/README.md](cowork-plugin/README.md) to register your Smartsheet OAuth app and sideload the plugin.
+1. Download the pre-built `smartsheet-cowork-plugin.zip` from [Releases](https://github.com/ddaou-eb/smartsheet-mcp/releases) or the [cowork-plugin/](cowork-plugin/) folder.
+2. Follow the install steps in [cowork-plugin/README.md](cowork-plugin/README.md) to upload the zip to Teams and sign in to Smartsheet. The backend and OAuth app are already set up for Eide Bailly, so there is nothing to register or deploy.
 
 ## Tools
 
