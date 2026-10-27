@@ -18,6 +18,11 @@ The backend service is already deployed and registered for Eide Bailly. You do n
 3. Open Cowork, enable **Smartsheet Tools** under your plugins/connectors, and run a prompt (such as "List my favorite Smartsheet sheets").
 4. Follow the prompt to sign in to your Smartsheet account to authorize access.
 
+### Troubleshooting
+
+- **"Upload a custom app" is missing or greyed out.** Your Teams admin policy is blocking custom app uploads. Ask IT to allow it for your account, or ask Daniel to request that the plugin be published to the organization's app catalog.
+- **The sign-in prompt never appears.** Make sure **Smartsheet Tools** is enabled under your plugins/connectors, then run a prompt that reads Smartsheet data.
+
 ---
 
 ## Developer and maintenance notes
@@ -43,7 +48,7 @@ npx vercel --prod
 
 ## Tools exposed
 
-Same twelve as the VS Code server — see [tools/smartsheet-tools.json](tools/smartsheet-tools.json) for the exact schemas, or [../README.md](../README.md) for the plain-language list. Reads (`list_sheets`, `list_my_sheets`, `list_favorite_sheets`, `get_sheet`, `list_discussions`) run without confirmation; writes (`add_row`, `update_row`, `create_workspace`, `create_sheet`, `add_comment`, `add_column`, `update_column`) prompt you to approve each call.
+Same twelve as the VS Code server — see [tools/smartsheet-tools.json](tools/smartsheet-tools.json) for the exact schemas, or [../AGENTS.md](../AGENTS.md) for the plain-language list. Reads (`list_sheets`, `list_my_sheets`, `list_favorite_sheets`, `get_sheet`, `list_discussions`) run without confirmation; writes (`add_row`, `update_row`, `create_workspace`, `create_sheet`, `add_comment`, `add_column`, `update_column`) prompt you to approve each call.
 
 A row comment creates a real Smartsheet discussion on that row, the same thing you'd see in the row's conversation pane. It does not write into any column.
 
@@ -61,5 +66,5 @@ A row comment creates a real Smartsheet discussion on that row, the same thing y
 ## Known limitations
 
 - **Placeholder icons.** Solid color squares, not real artwork.
-- **Personal only.** `manifest.json`'s `id` is a fixed GUID picked for this project; if this is ever shared with teammates or published, keep that GUID stable across versions (don't regenerate it).
+- **Keep the manifest `id` stable.** `manifest.json`'s `id` is a fixed GUID; don't regenerate it between versions, or users will get a second copy of the plugin instead of an update.
 - **Smartsheet access tokens expire in ~7 days**; Cowork's Enterprise Token Store refreshes them automatically using the refresh endpoint registered in step 3, so this shouldn't surface as a problem day to day.
