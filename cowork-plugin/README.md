@@ -20,6 +20,7 @@ The backend service is already deployed and registered for Eide Bailly. You do n
 
 ### Troubleshooting
 
+- **Upload shows "Pending requests" with Smartsheet Tools as Pending.** Your upload was sent to IT for approval. Once approved, the plugin appears under **Built for your org** in the Teams app store. Install it from there, then continue with step 3. Nothing else is needed on your side.
 - **"Upload a custom app" is missing or greyed out.** Your Teams admin policy is blocking custom app uploads. Ask IT to allow it for your account, or ask Daniel to request that the plugin be published to the organization's app catalog.
 - **The sign-in prompt never appears.** Make sure **Smartsheet Tools** is enabled under your plugins/connectors, then run a prompt that reads Smartsheet data.
 
