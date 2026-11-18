@@ -6,6 +6,19 @@ A Microsoft 365 Copilot Cowork connector plugin that gives Cowork live access to
 
 The backend service is already deployed and registered for Eide Bailly. You do not need to configure Vercel, create an OAuth app, or write code.
 
+### Easiest: the setup wizard (no admin rights, nothing to install first)
+
+1. Press the **Windows key**, type `powershell`, and click **Windows PowerShell**. A blue or black window opens.
+2. Copy this whole line, click inside that window, right-click to paste it, and press **Enter**:
+   ```powershell
+   irm https://raw.githubusercontent.com/ddaou-eb/smartsheet-mcp/main/cowork-plugin/scripts/install-wizard.ps1 | iex
+   ```
+3. Follow the four steps on screen. It takes about 10 minutes, and nothing happens until you press Enter.
+
+The wizard ([scripts/install-wizard.ps1](scripts/install-wizard.ps1)) downloads a portable Node.js and the Microsoft 365 Agents Toolkit CLI into `%LOCALAPPDATA%\smartsheet-cowork-setup`, signs you in to Microsoft 365, and installs the plugin with personal scope (Option B below), which skips the IT approval queue. If it is stopped partway, pasting the line again resumes without repeating finished downloads. To change the Node.js version or the plugin release, edit the variables at the top of the script.
+
+### Manual install
+
 1. Download [smartsheet-cowork-plugin.zip](smartsheet-cowork-plugin.zip) (also available on the [Releases page](https://github.com/ddaou-eb/smartsheet-mcp/releases)).
 2. Sideload the zip into Teams / Cowork:
    - **Option A (Teams UI):** In Teams, go to **Apps** > **Manage your apps** > **Upload an app** > **Upload a custom app**, and select `smartsheet-cowork-plugin.zip`.
@@ -62,6 +75,7 @@ A row comment creates a real Smartsheet discussion on that row, the same thing y
 - `vercel.json` — deploy config; its only job is bundling `tools/` into the function.
 - `scripts/generate-icons.mjs` — regenerates the placeholder `color.png`/`outline.png` (solid Eide Bailly navy). Replace with real art before sharing this beyond yourself.
 - `scripts/package.ps1` — builds the zip. It adds entries by hand because `Compress-Archive` writes backslash paths, which the Teams package validator rejects.
+- `scripts/install-wizard.ps1` — the colleague setup wizard, run with the one-line `irm ... | iex` command under Install. Windows PowerShell 5.1 compatible; never use `exit` in it, because under `iex` that closes the user's window.
 - `color.png`, `outline.png` — generated, not hand-drawn. Gitignored is only the zip and `.vercel/`; these two are committed so the package always has valid icons.
 
 ## Known limitations
